@@ -1,0 +1,32 @@
+name: Build LinkDispatch
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Build app bundle
+        run: chmod +x build.sh && ./build.sh
+
+      - name: Verify app bundle structure
+        run: |
+          test -f build/LinkDispatch.app/Contents/MacOS/LinkDispatch
+          test -f build/LinkDispatch.app/Contents/Info.plist
+          test -f build/LinkDispatch.app/Contents/Resources/AppIcon.icns
+          echo "App bundle structure verified"
+
+      - name: Upload app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LinkDispatch.app
+          path: build/LinkDispatch.app
