@@ -34,11 +34,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupStatusBar() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        statusItem = NSStatusBar.system.statusItem(withLength: 30)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "link", accessibilityDescription: "LinkDispatch")
-                ?? makeTextIcon()
+            button.image = makeMenuBarIcon()
         }
 
         let menu = NSMenu()
@@ -70,14 +69,77 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = menu
     }
 
-    private func makeTextIcon() -> NSImage {
-        let img = NSImage(size: NSSize(width: 18, height: 18))
+    private func makeMenuBarIcon() -> NSImage {
+        let s: CGFloat = 28
+        let img = NSImage(size: NSSize(width: s, height: s))
         img.lockFocus()
-        let attrs: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 12, weight: .bold),
-            .foregroundColor: NSColor.labelColor
-        ]
-        "LD".draw(at: NSPoint(x: 0, y: 2), withAttributes: attrs)
+
+        guard let ctx = NSGraphicsContext.current?.cgContext else {
+            img.unlockFocus()
+            return img
+        }
+
+        let lineWidth: CGFloat = 1.8
+        ctx.setLineCap(.round)
+        ctx.setLineJoin(.round)
+        ctx.setLineWidth(lineWidth)
+        ctx.setStrokeColor(NSColor.black.cgColor)
+
+        // Chain links (two interlocking rounded rects, tilted -30°)
+        let cx = s * 0.38
+        let cy = s * 0.52
+        let linkW = s * 0.28
+        let linkH = s * 0.15
+        let linkR = linkH / 2
+
+        // Left link
+        ctx.saveGState()
+        ctx.translateBy(x: cx, y: cy)
+        ctx.rotate(by: -CGFloat.pi / 6)
+        let leftLink = CGRect(x: -linkW / 2, y: -linkH / 2, width: linkW, height: linkH)
+        ctx.addPath(CGPath(roundedRect: leftLink, cornerWidth: linkR, cornerHeight: linkR, transform: nil))
+        ctx.strokePath()
+        ctx.restoreGState()
+
+        // Right link
+        let ox = s * 0.14
+        let oy = -s * 0.08
+        ctx.saveGState()
+        ctx.translateBy(x: cx + ox, y: cy + oy)
+        ctx.rotate(by: -CGFloat.pi / 6)
+        let rightLink = CGRect(x: -linkW / 2, y: -linkH / 2, width: linkW, height: linkH)
+        ctx.addPath(CGPath(roundedRect: rightLink, cornerWidth: linkR, cornerHeight: linkR, transform: nil))
+        ctx.strokePath()
+        ctx.restoreGState()
+
+        // Three dispatch arrows fanning out to the right
+        let arrowStart = CGPoint(x: s * 0.58, y: s * 0.44)
+        let arrowLen = s * 0.22
+        let headLen: CGFloat = 4.0
+        let arrowLineWidth: CGFloat = 1.6
+
+        let angles: [CGFloat] = [-0.50, 0.0, 0.50]
+        ctx.setLineWidth(arrowLineWidth)
+        ctx.setStrokeColor(NSColor.black.cgColor)
+
+        for angle in angles {
+            let endX = arrowStart.x + arrowLen * cos(angle)
+            let endY = arrowStart.y + arrowLen * sin(angle)
+
+            // Shaft
+            ctx.move(to: arrowStart)
+            ctx.addLine(to: CGPoint(x: endX, y: endY))
+            ctx.strokePath()
+
+            // Arrowhead
+            let headAngle1 = angle + CGFloat.pi * 0.8
+            let headAngle2 = angle - CGFloat.pi * 0.8
+            ctx.move(to: CGPoint(x: endX + headLen * cos(headAngle1), y: endY + headLen * sin(headAngle1)))
+            ctx.addLine(to: CGPoint(x: endX, y: endY))
+            ctx.addLine(to: CGPoint(x: endX + headLen * cos(headAngle2), y: endY + headLen * sin(headAngle2)))
+            ctx.strokePath()
+        }
+
         img.unlockFocus()
         img.isTemplate = true
         return img
