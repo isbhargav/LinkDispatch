@@ -1,8 +1,12 @@
+<p align="center">
+  <img src="Resources/AppIcon.png" width="128" height="128" alt="LinkDispatch icon">
+</p>
+
 # LinkDispatch
 
 A macOS browser chooser app. Set it as your default browser and it intercepts every link click, letting you pick which browser to open it in — or auto-route URLs based on rules.
 
-Inspired by [Choosy](https://choosy.app).
+Inspired by [Choosy](https://choosy.app), [Velja](https://sindresorhus.com/velja), and [Browserosaurus](https://browserosaurus.com).
 
 ## Features
 
