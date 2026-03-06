@@ -16,8 +16,11 @@ rm -rf "$BUILD_DIR"
 # Create app bundle structure
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
-# Copy Info.plist
+# Copy Info.plist and app icon
 cp Resources/Info.plist "$CONTENTS/Info.plist"
+if [ -f Resources/AppIcon.icns ]; then
+    cp Resources/AppIcon.icns "$RESOURCES_DIR/AppIcon.icns"
+fi
 
 # Compile all Swift sources into the executable
 swiftc \
